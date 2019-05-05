@@ -62,6 +62,7 @@ PROTO_MODULES += $(ODIR)/protocol/e016h.mod
 PROTO_MODULES += $(ODIR)/protocol/sumd.mod
 PROTO_MODULES += $(ODIR)/protocol/scancyrf.mod
 PROTO_MODULES += $(ODIR)/protocol/xn297dmp.mod
+PROTO_MODULES += $(ODIR)/protocol/jjrch31.mod
 
 ALL += $(PROTO_MODULES)
 else #BUILD_TARGET
@@ -311,5 +312,9 @@ $(ODIR)/protocol/scancyrf.mod : $(ODIR)/scanner_cyrf6936.bin
 
 $(ODIR)/protocol/xn297dmp.mod : $(ODIR)/xn297dump_nrf24l01.bin
 	@echo Building 'xn297dmp' module
+	/bin/mkdir -p $(ODIR)/protocol/ 2>/dev/null; /bin/cp $< $@
+
+$(ODIR)/protocol/jjrch31.mod : $(ODIR)/jjrch31_cc2500.bin
+	@echo Building 'jjrch31' module
 	/bin/mkdir -p $(ODIR)/protocol/ 2>/dev/null; /bin/cp $< $@
 endif #BUILD_TARGET
