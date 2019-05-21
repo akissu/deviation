@@ -279,7 +279,7 @@ static u8  xn297_rx_addr[5];
 static u8  xn297_crc = 0;
 
 // xn297 address / pcf / payload scramble table
-static const uint8_t xn297_scramble[] = {
+const uint8_t xn297_scramble[] = {
     0xE3, 0xB1, 0x4B, 0xEA, 0x85, 0xBC, 0xE5, 0x66,
     0x0D, 0xAE, 0x8C, 0x88, 0x12, 0x69, 0xEE, 0x1F,
     0xC7, 0x62, 0x97, 0xD5, 0x0B, 0x79, 0xCA, 0xCC,
@@ -287,7 +287,7 @@ static const uint8_t xn297_scramble[] = {
     0x8E, 0xC5, 0x2F, 0xAA, 0x16, 0xF3, 0x95 };
 
 // scrambled, standard mode crc xorout table
-static const uint16_t xn297_crc_xorout_scrambled[] = {
+const uint16_t xn297_crc_xorout_scrambled[] = {
     0x0000, 0x3448, 0x9BA7, 0x8BBB, 0x85E1, 0x3E8C,
     0x451E, 0x18E6, 0x6B24, 0xE7AB, 0x3828, 0x814B,
     0xD461, 0xF494, 0x2503, 0x691D, 0xFE8B, 0x9BA7,
@@ -296,7 +296,7 @@ static const uint16_t xn297_crc_xorout_scrambled[] = {
     0x0C6C, 0xB329, 0xA0A1, 0x0A16, 0xA9D0 };
 
 // unscrambled, standard mode crc xorout table
-static const uint16_t xn297_crc_xorout[] = {
+const uint16_t xn297_crc_xorout[] = {
     0x0000, 0x3D5F, 0xA6F1, 0x3A23, 0xAA16, 0x1CAF,
     0x62B2, 0xE0EB, 0x0821, 0xBE07, 0x5F1A, 0xAF15,
     0x4F0A, 0xAD24, 0x5E48, 0xED34, 0x068C, 0xF2C9,
@@ -305,7 +305,7 @@ static const uint16_t xn297_crc_xorout[] = {
     0xE6A5, 0x26E7, 0xBDAB, 0xC379, 0x8E20 };
 
 // scrambled enhanced mode crc xorout table
-static const uint16_t xn297_crc_xorout_scrambled_enhanced[] = {
+const uint16_t xn297_crc_xorout_scrambled_enhanced[] = {
     0x0000, 0x7EBF, 0x3ECE, 0x07A4, 0xCA52, 0x343B,
     0x53F8, 0x8CD0, 0x9EAC, 0xD0C0, 0x150D, 0x5186,
     0xD251, 0xA46F, 0x8435, 0xFA2E, 0x7EBD, 0x3C7D,
@@ -314,13 +314,16 @@ static const uint16_t xn297_crc_xorout_scrambled_enhanced[] = {
     0xDC86, 0x92A5, 0x183A, 0xB760, 0xA953 };
 
 // unscrambled enhanced mode crc xorout table
-static const uint16_t xn297_crc_xorout_enhanced[] = {
+// unused so far
+/*
+const uint16_t xn297_crc_xorout_enhanced[] = {
     0x0000, 0x8BE6, 0xD8EC, 0xB87A, 0x42DC, 0xAA89,
     0x83AF, 0x10E4, 0xE83E, 0x5C29, 0xAC76, 0x1C69,
     0xA4B2, 0x5961, 0xB4D3, 0x2A50, 0xCB27, 0x5128,
     0x7CDB, 0x7A14, 0xD5D2, 0x57D7, 0xE31D, 0xCE42,
     0x648D, 0xBF2D, 0x653B, 0x190C, 0x9117, 0x9A97,
     0xABFC, 0xE68E, 0x0DE7, 0x28A2, 0x1965 };
+*/
 
 #if defined(__GNUC__) && defined(__ARM_ARCH_ISA_THUMB) && (__ARM_ARCH_ISA_THUMB==2)
 // rbit instruction works on cortex m3
@@ -460,7 +463,7 @@ u8 XN297_WritePayload(u8* msg, int len)
     return res;
 }
 
-u8 XN297_WriteEnhancedPayload(u8* msg, int len, int noack, u16 crc_xorout)
+u8 XN297_WriteEnhancedPayload(u8* msg, int len, int noack)
 {
     u8 packet[32];
     u8 scramble_index=0;
@@ -514,7 +517,7 @@ u8 XN297_WriteEnhancedPayload(u8* msg, int len, int noack, u16 crc_xorout)
             crc = crc16_update(crc, packet[i], 8);
         }
         crc = crc16_update(crc, packet[last] & 0xc0, 2);
-        crc ^= crc_xorout;
+        crc ^= xn297_crc_xorout_scrambled_enhanced[xn297_addr_len-3+len];
 
         packet[last++] |= (crc >> 8) >> 2;
         packet[last++] = ((crc >> 8) << 6) | ((crc & 0xff) >> 2);
