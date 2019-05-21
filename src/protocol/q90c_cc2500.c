@@ -257,6 +257,11 @@ static void Q90C_send_packet(u8 bind)
             packet[3] = scale_channel(Channels[CHANNEL1], CHAN_MIN_VALUE, 0, 0, 0x88);  // aileron neutral = 0x88
         else
             packet[3] = scale_channel(Channels[CHANNEL1], 0, CHAN_MAX_VALUE, 0x88, 0xff);
+        // required to "arm" (low throttle + aileron to the right)
+        if (packet[0] < 5 && packet[3] < 25) {
+            packet[1] = 0x7a;
+            packet[2] = 0x88;
+        }
         packet[4] = 0x1e;
         packet[5] = 0x1e;
         packet[6] = 0x1e;
