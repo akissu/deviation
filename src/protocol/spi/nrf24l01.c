@@ -517,8 +517,10 @@ u8 XN297_WriteEnhancedPayload(u8* msg, int len, int noack)
             crc = crc16_update(crc, packet[i], 8);
         }
         crc = crc16_update(crc, packet[last] & 0xc0, 2);
-        crc ^= xn297_crc_xorout_scrambled_enhanced[xn297_addr_len-3+len];
-
+        if(xn297_scramble_enabled)
+            crc ^= xn297_crc_xorout_scrambled_enhanced[xn297_addr_len-3+len];
+        // else
+        //     crc ^= xn297_crc_xorout_enhanced[xn297_addr_len - 3 + len];
         packet[last++] |= (crc >> 8) >> 2;
         packet[last++] = ((crc >> 8) << 6) | ((crc & 0xff) >> 2);
         packet[last++] = (crc & 0xff) << 6;
