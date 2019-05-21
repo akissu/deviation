@@ -145,6 +145,7 @@ enum {
 extern const u8 xn297_scramble[];
 extern const u16 xn297_crc_xorout_scrambled[];
 extern const u16 xn297_crc_xorout[];
+extern const u16 xn297_crc_xorout_scrambled_enhanced[];
 // extern const uint16_t xn297_crc_xorout_enhanced[];
 uint8_t bit_reverse(uint8_t b_in);
 

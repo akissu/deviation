@@ -86,7 +86,7 @@ static u16 scale_channel(u8 ch, u16 destMin, u16 destMax)
 }
 
 #define GET_FLAG(ch, mask) (Channels[ch] > 0 ? mask : 0)
-void Q90C_send_packet(u8 bind)
+static void Q90C_send_packet(u8 bind)
 {
     static u8 packet_counter;
     if (bind) {
@@ -132,7 +132,7 @@ void Q90C_send_packet(u8 bind)
     }
 }
 
-u16 Q90C_callback()
+static u16 Q90C_callback()
 {
     switch (phase) {
         case Q90C_BIND:
@@ -151,7 +151,7 @@ u16 Q90C_callback()
     return Q90C_BIND_PACKET_PERIOD;
 }
 
-void Q90C_init()
+static void Q90C_init()
 {
     NRF24L01_Initialize();
     XN297_SetTXAddr((u8*)"\x4F\x43\x54\x81\x81", Q90C_ADDRESS_LENGTH);  // bind address
@@ -165,13 +165,13 @@ void Q90C_init()
     NRF24L01_SetPower(tx_power);
 }
 
-void Q90C_initialize_txid()
+static void Q90C_initialize_txid()
 {
     memcpy(rx_tx_addr, (u8*)"\x24\x03\x01\x82\x4B", Q90C_ADDRESS_LENGTH);  // stock Tx
     memcpy(hopping_frequency, (u8*)"\x18\x26\x37", Q90C_NUM_CHANNELS);  // stock Tx
 }
 
-void initialize(u8 bind) {
+static void initialize(u8 bind) {
     CLOCK_StopTimer();
     Q90C_initialize_txid();
     tx_power = Model.tx_power;
