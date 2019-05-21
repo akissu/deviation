@@ -257,9 +257,6 @@ static void Q90C_send_packet(u8 bind)
             packet[3] = scale_channel(Channels[CHANNEL1], CHAN_MIN_VALUE, 0, 0, 0x88);  // aileron neutral = 0x88
         else
             packet[3] = scale_channel(Channels[CHANNEL1], 0, CHAN_MAX_VALUE, 0x88, 0xff);
-        
-        //packet[2] = 0x88; // scale_channel(CHANNEL2, 0, 0xff);  // elevator neutral = 0x88
-        //packet[3] = 0x88; // scale_channel(CHANNEL1, 0, 0xff);  // aileron neutral = 0x88;
         packet[4] = 0x1e;
         packet[5] = 0x1e;
         packet[6] = 0x1e;
@@ -343,7 +340,7 @@ static void initialize(u8 bind) {
     CLOCK_StartTimer(Q90C_INITIAL_WAIT, Q90C_callback);
 }
 
-uintptr_t Q90CC_Cmds(enum ProtoCmds cmd)
+uintptr_t Q90C_Cmds(enum ProtoCmds cmd)
 {
     switch (cmd) {
     case PROTOCMD_INIT:  initialize(0); return 0;

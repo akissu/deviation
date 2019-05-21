@@ -318,11 +318,7 @@ $(ODIR)/protocol/e010.mod : $(ODIR)/e010_cc2500.bin
 	@echo Building 'e010' module
 	/bin/mkdir -p $(ODIR)/protocol/ 2>/dev/null; /bin/cp $< $@
 
-$(ODIR)/protocol/q90c.mod : $(ODIR)/q90c_nrf24l01.bin
-	@echo Building 'q90c' module
-	/bin/mkdir -p $(ODIR)/protocol/ 2>/dev/null; /bin/cp $< $@
-
-$(ODIR)/protocol/q90cc.mod : $(ODIR)/q90c_cc2500.bin
+$(ODIR)/protocol/q90c.mod : $(ODIR)/q90c_cc2500.bin
 	@echo Building 'q90cc' module
 	/bin/mkdir -p $(ODIR)/protocol/ 2>/dev/null; /bin/cp $< $@
 endif #BUILD_TARGET
