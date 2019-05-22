@@ -26,12 +26,10 @@
 #define USE_FIXED_MFGID
 #define Q90C_BIND_COUNT      20
 #define Q90C_PACKET_PERIOD   100
-#define Q90C_BIND_PACKET_PERIOD 100
 #define dbgprintf printf
 #else
 #define Q90C_BIND_COUNT      250
 #define Q90C_PACKET_PERIOD   7336  // Timeout for callback in uSec
-#define Q90C_BIND_PACKET_PERIOD    3300
 //  printf inside an interrupt handler is really dangerous
 //  this shouldn't be enabled even in debug builds without explicitly
 //  turning it on
@@ -113,28 +111,28 @@ static void XN297L_init()
     // TX Power = 0
     // Whitening = false
 
-    CC2500_WriteReg(CC2500_08_PKTCTRL0, 0x01);   // Packet Automation Control
-    CC2500_WriteReg(CC2500_0B_FSCTRL1, 0x0A);   // Frequency Synthesizer Control
-    CC2500_WriteReg(CC2500_0C_FSCTRL0, 0x00);   // Frequency Synthesizer Control
-    CC2500_WriteReg(CC2500_0D_FREQ2, 0x5C);   // Frequency Control Word, High Byte
-    CC2500_WriteReg(CC2500_0E_FREQ1, 0x4E);   // Frequency Control Word, Middle Byte
-    CC2500_WriteReg(CC2500_0F_FREQ0, 0xC3);   // Frequency Control Word, Low Byte
-    CC2500_WriteReg(CC2500_10_MDMCFG4, 0x8D);   // Modem Configuration
-    CC2500_WriteReg(CC2500_11_MDMCFG3, 0x3B);   // Modem Configuration
-    CC2500_WriteReg(CC2500_12_MDMCFG2, 0x10);   // Modem Configuration
-    CC2500_WriteReg(CC2500_13_MDMCFG1, 0x23);   // Modem Configuration
-    CC2500_WriteReg(CC2500_14_MDMCFG0, 0xA4);   // Modem Configuration
-    CC2500_WriteReg(CC2500_15_DEVIATN, 0x62);   // Modem Deviation Setting
-    CC2500_WriteReg(CC2500_18_MCSM0, 0x18);   // Main Radio Control State Machine Configuration
-    CC2500_WriteReg(CC2500_19_FOCCFG, 0x1D);   // Frequency Offset Compensation Configuration
-    CC2500_WriteReg(CC2500_1A_BSCFG, 0x1C);   // Bit Synchronization Configuration
-    CC2500_WriteReg(CC2500_1B_AGCCTRL2, 0xC7);   // AGC Control
-    CC2500_WriteReg(CC2500_1C_AGCCTRL1, 0x00);   // AGC Control
-    CC2500_WriteReg(CC2500_1D_AGCCTRL0, 0xB0);   // AGC Control
-    CC2500_WriteReg(CC2500_21_FREND1, 0xB6);   // Front End RX Configuration
-    CC2500_WriteReg(CC2500_23_FSCAL3, 0xEA);   // Frequency Synthesizer Calibration
-    CC2500_WriteReg(CC2500_25_FSCAL1, 0x00);   // Frequency Synthesizer Calibration
-    CC2500_WriteReg(CC2500_26_FSCAL0, 0x11);   // Frequency Synthesizer Calibration
+    CC2500_WriteReg(CC2500_08_PKTCTRL0, 0x01);  // Packet Automation Control
+    CC2500_WriteReg(CC2500_0B_FSCTRL1,  0x0A);  // Frequency Synthesizer Control
+    CC2500_WriteReg(CC2500_0C_FSCTRL0,  0x00);  // Frequency Synthesizer Control
+    CC2500_WriteReg(CC2500_0D_FREQ2,    0x5C);  // Frequency Control Word, High Byte
+    CC2500_WriteReg(CC2500_0E_FREQ1,    0x4E);  // Frequency Control Word, Middle Byte
+    CC2500_WriteReg(CC2500_0F_FREQ0,    0xC3);  // Frequency Control Word, Low Byte
+    CC2500_WriteReg(CC2500_10_MDMCFG4,  0x8D);  // Modem Configuration
+    CC2500_WriteReg(CC2500_11_MDMCFG3,  0x3B);  // Modem Configuration
+    CC2500_WriteReg(CC2500_12_MDMCFG2,  0x10);  // Modem Configuration
+    CC2500_WriteReg(CC2500_13_MDMCFG1,  0x23);  // Modem Configuration
+    CC2500_WriteReg(CC2500_14_MDMCFG0,  0xA4);  // Modem Configuration
+    CC2500_WriteReg(CC2500_15_DEVIATN,  0x62);  // Modem Deviation Setting
+    CC2500_WriteReg(CC2500_18_MCSM0,    0x18);  // Main Radio Control State Machine Configuration
+    CC2500_WriteReg(CC2500_19_FOCCFG,   0x1D);  // Frequency Offset Compensation Configuration
+    CC2500_WriteReg(CC2500_1A_BSCFG,    0x1C);  // Bit Synchronization Configuration
+    CC2500_WriteReg(CC2500_1B_AGCCTRL2, 0xC7);  // AGC Control
+    CC2500_WriteReg(CC2500_1C_AGCCTRL1, 0x00);  // AGC Control
+    CC2500_WriteReg(CC2500_1D_AGCCTRL0, 0xB0);  // AGC Control
+    CC2500_WriteReg(CC2500_21_FREND1,   0xB6);  // Front End RX Configuration
+    CC2500_WriteReg(CC2500_23_FSCAL3,   0xEA);  // Frequency Synthesizer Calibration
+    CC2500_WriteReg(CC2500_25_FSCAL1,   0x00);  // Frequency Synthesizer Calibration
+    CC2500_WriteReg(CC2500_26_FSCAL0,   0x11);  // Frequency Synthesizer Calibration
 
     CC2500_SetTxRxMode(TX_EN);
 }
@@ -162,6 +160,8 @@ static void XN297L_WriteEnhancedPayload(const u8* msg, u8 len, u8 noack)
     }
 
     // pcf
+    pid++;  // packet id
+    if (pid > 3) pid = 0;
     buf[last] = (len << 1) | (pid >> 1); // pcf msb
     buf[last] ^= xn297_scramble[scramble_index++];
     last++;
@@ -170,34 +170,25 @@ static void XN297L_WriteEnhancedPayload(const u8* msg, u8 len, u8 noack)
     // payload
     buf[last] |= bit_reverse(msg[0]) >> 2; // first 6 bit of payload
     buf[last] ^= xn297_scramble[scramble_index++];
-
     for (i = 0; i < len - 1; ++i) {
         last++;
         buf[last] = (bit_reverse(msg[i]) << 6) | (bit_reverse(msg[i + 1]) >> 2);
-        
         buf[last] ^= xn297_scramble[scramble_index++];
     }
-
     last++;
     buf[last] = bit_reverse(msg[len - 1]) << 6; // last 2 bit of payload
-    
     buf[last] ^= xn297_scramble[scramble_index++] & 0xc0;
-        
+    
+    // crc
     u16 crc = initial;
     for (i = 0; i < last; ++i) {
         crc = crc16_update(crc, buf[i], 8);
     }
     crc = crc16_update(crc, buf[last] & 0xc0, 2);
-        
     crc ^= xn297_crc_xorout_scrambled_enhanced[xn297_addr_len - 3 + len];
-       
     buf[last++] |= (crc >> 8) >> 2;
     buf[last++] = ((crc >> 8) << 6) | ((crc & 0xff) >> 2);
     buf[last++] = (crc & 0xff) << 6;
-
-    pid++;
-    if (pid > 3)
-        pid = 0;
 
     // stop TX/RX
     CC2500_Strobe(CC2500_SIDLE);
@@ -244,17 +235,17 @@ static void Q90C_send_packet(u8 bind)
     else
     { 
         packet[0] = scale_channel(Channels[CHANNEL3], CHAN_MIN_VALUE, CHAN_MAX_VALUE, 0, 0xff);  // throttle
-        // A,E,R have weird scaling
+        // A,E,R have weird scaling, 0x00-0xff range but center isn't 7f or 80
         if(Channels[CHANNEL4] <= 0)
-            packet[1] = scale_channel(Channels[CHANNEL4], CHAN_MIN_VALUE, 0, 0, 0x7a);  // rudder neutral = 0x7a
+            packet[1] = scale_channel(Channels[CHANNEL4], CHAN_MIN_VALUE, 0, 0, 0x7a);  // rudder ff-7a-00
         else
             packet[1] = scale_channel(Channels[CHANNEL4], 0, CHAN_MAX_VALUE, 0x7a, 0xff);
         if (Channels[CHANNEL2] <= 0)
-            packet[2] = scale_channel(Channels[CHANNEL2], CHAN_MIN_VALUE, 0, 0, 0x88);  // elevator neutral = 0x88
+            packet[2] = scale_channel(Channels[CHANNEL2], CHAN_MIN_VALUE, 0, 0, 0x88);  // elevator 00-88-ff
         else
             packet[2] = scale_channel(Channels[CHANNEL2], 0, CHAN_MAX_VALUE, 0x88, 0xff);
         if (Channels[CHANNEL1] <= 0)
-            packet[3] = scale_channel(Channels[CHANNEL1], CHAN_MIN_VALUE, 0, 0, 0x88);  // aileron neutral = 0x88
+            packet[3] = scale_channel(Channels[CHANNEL1], CHAN_MIN_VALUE, 0, 0, 0x88);  // aileron ff-88-00
         else
             packet[3] = scale_channel(Channels[CHANNEL1], 0, CHAN_MAX_VALUE, 0x88, 0xff);
         // required to "arm" (low throttle + aileron to the right)
@@ -262,11 +253,11 @@ static void Q90C_send_packet(u8 bind)
             packet[1] = 0x7a;
             packet[2] = 0x88;
         }
-        packet[4] = 0x1e;
-        packet[5] = 0x1e;
-        packet[6] = 0x1e;
-        packet[7] = 0x1e;
-        packet[8] = 0x00; // flags
+        packet[4] = 0x1e;  // T trim 00-1e-3c
+        packet[5] = 0x1e;  // R trim 3c-1e-00
+        packet[6] = 0x1e;  // E trim 00-1e-3c
+        packet[7] = 0x1e;  // A trim 00-1e-00
+        packet[8] = 0x00;  // flags
         packet[9] = 0x00;
         packet[10] = packet_counter++;
         packet[11] = 0x9c;  // initial checksum value ?
@@ -307,7 +298,7 @@ static u16 Q90C_callback()
         Q90C_send_packet(0);
         break;
     }
-    return Q90C_BIND_PACKET_PERIOD;
+    return Q90C_PACKET_PERIOD;
 }
 
 static void Q90C_init()
