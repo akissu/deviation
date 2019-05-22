@@ -227,7 +227,7 @@ static void CE_hi()
 
 void NRF24L01_SetTxRxMode(enum TXRX_State mode)
 {
-    if(mode == TX_EN) {
+    if (mode == TX_EN) {
         CE_lo();
         NRF24L01_WriteReg(NRF24L01_07_STATUS, (1 << NRF24L01_07_RX_DR)    //reset the flag(s)
                                             | (1 << NRF24L01_07_TX_DS)
@@ -517,7 +517,7 @@ u8 XN297_WriteEnhancedPayload(u8* msg, int len, int noack)
             crc = crc16_update(crc, packet[i], 8);
         }
         crc = crc16_update(crc, packet[last] & 0xc0, 2);
-        if(xn297_scramble_enabled)
+        if (xn297_scramble_enabled)
             crc ^= xn297_crc_xorout_scrambled_enhanced[xn297_addr_len-3+len];
         // else
         //     crc ^= xn297_crc_xorout_enhanced[xn297_addr_len - 3 + len];

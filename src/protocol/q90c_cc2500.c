@@ -162,13 +162,13 @@ static void XN297L_WriteEnhancedPayload(const u8* msg, u8 len, u8 noack)
     // pcf
     pid++;  // packet id
     if (pid > 3) pid = 0;
-    buf[last] = (len << 1) | (pid >> 1); // pcf msb
+    buf[last] = (len << 1) | (pid >> 1);  // pcf msb
     buf[last] ^= xn297_scramble[scramble_index++];
     last++;
-    buf[last] = (pid << 7) | (noack << 6); // pcf lsb (2bit)
+    buf[last] = (pid << 7) | (noack << 6);  // pcf lsb (2bit)
 
     // payload
-    buf[last] |= bit_reverse(msg[0]) >> 2; // first 6 bit of payload
+    buf[last] |= bit_reverse(msg[0]) >> 2;  // first 6 bit of payload
     buf[last] ^= xn297_scramble[scramble_index++];
     for (i = 0; i < len - 1; ++i) {
         last++;
@@ -176,9 +176,9 @@ static void XN297L_WriteEnhancedPayload(const u8* msg, u8 len, u8 noack)
         buf[last] ^= xn297_scramble[scramble_index++];
     }
     last++;
-    buf[last] = bit_reverse(msg[len - 1]) << 6; // last 2 bit of payload
+    buf[last] = bit_reverse(msg[len - 1]) << 6;  // last 2 bit of payload
     buf[last] ^= xn297_scramble[scramble_index++] & 0xc0;
-    
+
     // crc
     u16 crc = initial;
     for (i = 0; i < last; ++i) {
@@ -194,7 +194,7 @@ static void XN297L_WriteEnhancedPayload(const u8* msg, u8 len, u8 noack)
     CC2500_Strobe(CC2500_SIDLE);
     // flush tx FIFO
     CC2500_Strobe(CC2500_SFTX);
-    // packet length
+    // cc2500 payload length
     CC2500_WriteReg(CC2500_3F_TXFIFO, last + 3);
     // xn297L preamble
     CC2500_WriteRegisterMulti(CC2500_3F_TXFIFO, (u8*)"\x71\x0f\x55", 3);
@@ -233,10 +233,10 @@ static void Q90C_send_packet(u8 bind)
         packet[11] = 0x3a;  // initial checksum value ?
     }
     else
-    { 
+    {
         packet[0] = scale_channel(Channels[CHANNEL3], CHAN_MIN_VALUE, CHAN_MAX_VALUE, 0, 0xff);  // throttle
-        // A,E,R have weird scaling, 0x00-0xff range but center isn't 7f or 80
-        if(Channels[CHANNEL4] <= 0)
+        // A,E,R have weird scaling, 0x00-0xff range (unsigned) but center isn't 7f or 80
+        if (Channels[CHANNEL4] <= 0)
             packet[1] = scale_channel(Channels[CHANNEL4], CHAN_MIN_VALUE, 0, 0, 0x7a);  // rudder ff-7a-00
         else
             packet[1] = scale_channel(Channels[CHANNEL4], 0, CHAN_MAX_VALUE, 0x7a, 0xff);
@@ -256,7 +256,7 @@ static void Q90C_send_packet(u8 bind)
         packet[4] = 0x1e;  // T trim 00-1e-3c
         packet[5] = 0x1e;  // R trim 3c-1e-00
         packet[6] = 0x1e;  // E trim 00-1e-3c
-        packet[7] = 0x1e;  // A trim 00-1e-00
+        packet[7] = 0x1e;  // A trim 00-1e-3c
         packet[8] = 0x00;  // flags
         packet[9] = 0x00;
         packet[10] = packet_counter++;
@@ -271,19 +271,20 @@ static void Q90C_send_packet(u8 bind)
 
     XN297L_WriteEnhancedPayload(packet, Q90C_PACKET_SIZE, 0);
 
+    // Keep transmit power updated
     if (tx_power != Model.tx_power) {
-        //Keep transmit power updated
         tx_power = Model.tx_power;
         CC2500_SetPower(tx_power);
+    }
+    // Fine frequencing tuning
+    if (fine != (s8)Model.proto_opts[PROTOOPTS_FREQFINE]) {
+        fine = (s8)Model.proto_opts[PROTOOPTS_FREQFINE];
+        CC2500_WriteReg(CC2500_0C_FSCTRL0, fine);
     }
 }
 
 static u16 Q90C_callback()
 {
-    if (fine != (s8)Model.proto_opts[PROTOOPTS_FREQFINE]) {
-        fine = (s8)Model.proto_opts[PROTOOPTS_FREQFINE];
-        CC2500_WriteReg(CC2500_0C_FSCTRL0, fine);
-    }
     switch (phase) {
     case Q90C_BIND:
         Q90C_send_packet(1);
